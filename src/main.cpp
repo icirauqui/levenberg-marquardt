@@ -9,14 +9,52 @@
 void LevenbergMarquardt(const Eigen::MatrixXd& data,
                         const Eigen::VectorXd& initial_params,
                         const int max_iterations,
-                        const double lambda,
                         const double epsilon,
+                        double lambda,
                         Eigen::VectorXd& final_params) {
 
   std::cout << "LevenbergMarquardt " << std::endl;
 
+  const int num_params = initial_params.size();
+  Eigen::VectorXd params = initial_params;
+  double error = std::numeric_limits<double>::max();
+  int iteration = 0;
 
+  while (error > epsilon && iteration < max_iterations) {
+    Eigen::MatrixXd J(data.rows(), num_params);
+    Eigen::VectorXd r(data.rows());
 
+    for (int i = 0; i < data.rows(); i++) {
+      const double x = data(i,0);
+      const double y = data(i,1);
+      const double f = std::exp(-params(0) * x) * std::cos(params(1) * x);
+      
+      r(i) = y - f;
+
+      J(i, 0) = x * f;
+      J(i, 1) = -x * std::exp(-params(0) * x) * std::sin(params(1) * x);
+    }
+
+    Eigen::MatrixXd A = J.transpose() * J + lambda * Eigen::MatrixXd::Identity(num_params, num_params);
+    Eigen::VectorXd b = J.transpose() * r;
+
+    Eigen::VectorXd delta = A.ldlt().solve(b);
+    Eigen::VectorXd new_params = params + delta;
+
+    const double new_error = (r.array() * r.array()).sum();
+
+    if (new_error < error) {
+      lambda /= 10.0;
+      error = new_error;
+      params = new_params;
+    } else {
+      lambda *= 10.0;
+    }
+
+    iteration++;
+  }
+
+  final_params = params;
 }
 
 
@@ -24,7 +62,7 @@ int main() {
   std::cout << "Hello, World!" << std::endl;
 
   const int num_data_points = 100;
-  const int max_iterations = 100;
+  const int max_iterations = 1000;
   const double lambda = 0.01;
   const double epsilon = 0.000001;
   Eigen::VectorXd initial_params(2);
@@ -42,7 +80,7 @@ int main() {
   }
 
   // Run Levenberg-Marquardt
-  LevenbergMarquardt(data, initial_params, max_iterations, lambda, epsilon, final_params);
+  LevenbergMarquardt(data, initial_params, max_iterations, epsilon, lambda, final_params);
 
   // Print results
   std::cout << "Initial parameters: " << initial_params.transpose() << std::endl;

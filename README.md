@@ -1,2 +1,8 @@
-# levenberg-marquardt
-Levenberg-Marquardt in C++ using the Eigen library
+# Levenberg-Marquardt Algorithm in C++
+
+This example shows how to use the Levenberg-Marquardt algorithm to fit a model of the form **y = exp(-a x) * cos(b x)** to a set of data points. The implementation takes as input a matrix data of size N x 2 containing N data points, where the first column contains the independent variable x and the second column contains the dependent variable y. It also takes an initial guess for the parameters initial_params, a maximum number of iterations max_iterations, a damping factor lambda, and a convergence criterion epsilon. It outputs the final parameter values in the final_params vector.
+
+The algorithm first calculates the residuals r and the Jacobian matrix J for the current parameter values. It then forms the normal equations using the Jacobian matrix and applies the Levenberg-Marquardt damping factor to the diagonal of the normal matrix. The resulting linear system is then solved using the LDLT factorization of the normal matrix to obtain the update vector delta. The new parameter values are then calculated by adding delta to the current parameter values. If the new error is less than the current error, the damping factor is reduced and the parameter values are updated. Otherwise, the damping factor is increased and the parameter values are not updated. The algorithm terminates either when the error is below the convergence criterion or the maximum number of iterations is reached.
+
+In the main function, we first set the number of data points, maximum number of iterations, damping factor, and convergence criterion. We also initialize the initial parameter values and the final parameter vector. We then generate the data points by evaluating the true function with some random noise added to the output. We pass the data points to the levenberg_marquardt() function along with the other parameters to obtain the final parameter values. Finally, we print out the initial and final parameter values and the sum of squared residuals for verification.
+
